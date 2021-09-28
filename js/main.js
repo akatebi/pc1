@@ -96,6 +96,9 @@ async function start() {
     console.log("Got a Media Call");
     localStatus.innerHTML = "Call Establised !!!";
     mediaConnection.answer(localStream);
+    mediaConnection.on('stream', function(stream) {
+      remoteVideo.srcObject = stream;
+    });
   });
 }
 
