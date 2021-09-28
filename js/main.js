@@ -25,7 +25,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 let lastPeerId = null;
 let peer = null; // Own peer object
 let peerId = null;
-let conn = null;
+let mediaConn = null;
 const localId = document.getElementById("local-id");
 const localStatus = document.getElementById("local-status");
 ////
@@ -56,6 +56,7 @@ const offerOptions = {
 };
 
 async function start() {
+  
   console.log('Requesting local stream');
   startButton.disabled = true;
   try {
@@ -67,7 +68,9 @@ async function start() {
   } catch (e) {
     alert(`getUserMedia() error: ${e.name}`);
   }
+  
   peer = new Peer();
+  
   peer.on('open', function (id) {
     // Workaround for peer.reconnect deleting previous id
     if (peer.id === null) {
@@ -80,6 +83,11 @@ async function start() {
     localId.innerHTML = "Local ID: " + peer.id;
     localStatus.innerHTML = "Awaiting Call...";
   });
+
+  peer.on('close', hangup);
+
+  peer.on('error', hangup);
+
   peer.on('call', function(mediaConnection) {
     console.log("Got a Media Call");
     localStatus.innerHTML = "Call Establised !!!";
@@ -89,6 +97,8 @@ async function start() {
     mediaConnection.on('stream', function(stream) {
       remoteVideo.srcObject = stream;
     });
+    mediaConnection.on('close', hangup);
+    mediaConnection.on('error', hangup);
   });
 }
 
@@ -96,9 +106,9 @@ async function call() {
   // Create connection to destination peer specified in the input field
   const remoteId = document.getElementById("remote-id").value
   console.log("##### Remote Peer ID:", remoteId);
-  conn = peer.call(remoteId, localStream);
+  mediaConn = peer.call(remoteId, localStream);
 
-  conn.on('stream', function(stream) {
+  mediaConn.on('stream', function(stream) {
     // `stream` is the MediaStream of the remote peer.
     // Here you'd add it to an HTML video/canvas element.
     remoteVideo.srcObject = stream;
@@ -107,16 +117,14 @@ async function call() {
     hangupButton.disabled = false;
   });
 
-  conn.on('open', function () {
-      localStatus.innerHTML = "Connected to: " + conn.peer;
-      console.log("Connected to: " + conn.peer);
+  mediaConn.on('open', function () {
+      localStatus.innerHTML = "Connected to: " + mediaConn.peer;
+      console.log("Connected to: " + mediaConn.peer);
   });
 
-  conn.on('close', function () {
-    localStatus.innerHTML = "Connection closed";
-    callButton.disabled = false;
-    hangupButton.disabled = true;
-  });
+  mediaConn.on('close', hangup);
+
+  mediaConn.on('error', hangup);
   
 }
 
@@ -133,10 +141,13 @@ async function onCreateAnswerSuccess(desc) {
   
 }
 
-function hangup() {
-  console.log('Ending call');
-  if(conn) {
-    conn.close();
-    conn = null;
+function hangup(err) {
+  console.log('Ending call', err);
+  localStatus.innerHTML = "Connection closed";
+  if(mediaConn) {
+    mediaConn.close();
+    mediaConn = null;
   }
+  callButton.disabled = false;
+  hangupButton.disabled = true;
 }
