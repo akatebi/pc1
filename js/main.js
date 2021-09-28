@@ -93,11 +93,6 @@ async function start() {
 }
 
 async function call() {
-  // Close old connection
-  if (conn) {
-    conn.close();
-  }
-
   // Create connection to destination peer specified in the input field
   const remoteId = document.getElementById("remote-id").value
   console.log("##### Remote Peer ID:", remoteId);
@@ -118,9 +113,9 @@ async function call() {
   });
 
   conn.on('close', function () {
-      localStatus.innerHTML = "Connection closed";
-      callButton.disabled = false;
-      hangupButton.disabled = true;
+    localStatus.innerHTML = "Connection closed";
+    callButton.disabled = false;
+    hangupButton.disabled = true;
   });
   
 }
@@ -140,7 +135,8 @@ async function onCreateAnswerSuccess(desc) {
 
 function hangup() {
   console.log('Ending call');
-  conn.close();
-  hangupButton.disabled = true;
-  callButton.disabled = false;
+  if(conn) {
+    conn.close();
+    conn = null;
+  }
 }
