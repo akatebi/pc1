@@ -92,18 +92,10 @@ async function start() {
     localId.innerHTML = "Local ID: " + peer.id;
     localStatus.innerHTML = "Awaiting Call...";
   });
-  peer.on('connection', function (c) {
-    // Allow only a single connection
-    if (conn && conn.open) {
-        c.on('open', function() {
-            c.send("Already connected to another client");
-            setTimeout(function() { c.close(); }, 500);
-        });
-        return;
-    }
-    conn = c;
-    console.log("Connected to: " + conn.peer);
-    localStatus.innerHTML = "Connected";
+  peer.on('call', function(mediaConnection) {
+    console.log("Got a Media Call");
+    localStatus.innerHTML = "Call Establised !!!";
+    mediaConnection.answer(localStream);
   });
 }
 
