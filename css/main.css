@@ -14,8 +14,9 @@ video {
   filter: invert(1); 
 }
 
-div.peer {
+div.peer, input.peer {
   font-weight: bold;
+  min-width: 250px;
 }
 
 button {

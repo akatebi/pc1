@@ -101,7 +101,6 @@ async function start() {
         });
         return;
     }
-
     conn = c;
     console.log("Connected to: " + conn.peer);
     localStatus.innerHTML = "Connected";
