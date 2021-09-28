@@ -10,10 +10,8 @@
 
 const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
-const answerButton = document.getElementById('answerButton');
 const hangupButton = document.getElementById('hangupButton');
 callButton.disabled = true;
-answerButton.disabled = true;
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
 callButton.addEventListener('click', call);
@@ -112,6 +110,12 @@ async function call() {
   const remoteId = document.getElementById("remote-id").value
   console.log("##### Remote Peer ID:", remoteId);
   conn = peer.call(remoteId, localStream);
+
+  conn.on('stream', function(stream) {
+    // `stream` is the MediaStream of the remote peer.
+    // Here you'd add it to an HTML video/canvas element.
+    remoteVideo.srcObject = stream;
+  });
 
   conn.on('open', function () {
       localStatus.innerHTML = "Connected to: " + conn.peer;
