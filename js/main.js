@@ -79,7 +79,7 @@ async function start() {
   } catch (e) {
     alert(`getUserMedia() error: ${e.name}`);
   }
-  const peer = new Peer();
+  peer = new Peer();
   peer.on('open', function (id) {
     // Workaround for peer.reconnect deleting previous id
     if (peer.id === null) {
@@ -104,12 +104,28 @@ async function start() {
     conn = c;
     console.log("Connected to: " + conn.peer);
     localStatus.innerHTML = "Connected";
-    ready();
-});
+  });
 }
 
 async function call() {
-  
+  // Close old connection
+  if (conn) {
+    conn.close();
+  }
+
+  // Create connection to destination peer specified in the input field
+  const remoteId = document.getElementById("remote-id").value
+  console.log("##### Remote Peer ID:", remoteId);
+  conn = peer.call(remoteId, localStream);
+
+  conn.on('open', function () {
+      localStatus.innerHTML = "Connected to: " + conn.peer;
+      console.log("Connected to: " + conn.peer);
+  });
+
+  conn.on('close', function () {
+      localStatus.innerHTML = "Connection closed";
+  });
   
 }
 
