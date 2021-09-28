@@ -5,6 +5,19 @@
  *  that can be found in the LICENSE file in the root of the source
  *  tree.
  */
+ html { 
+  background: white;
+  filter: invert(1) hue-rotate(180deg); /* This will flip the color back to its original value.*/
+}
+
+video {
+  filter: invert(1); 
+}
+
+div.receiver {
+  font-weight: bold;
+}
+
 button {
   margin: 0 20px 0 0;
   width: 83px;

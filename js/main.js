@@ -10,8 +10,10 @@
 
 const startButton = document.getElementById('startButton');
 const callButton = document.getElementById('callButton');
+const answerButton = document.getElementById('answerButton');
 const hangupButton = document.getElementById('hangupButton');
 callButton.disabled = true;
+answerButton.disabled = true;
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
 callButton.addEventListener('click', call);
@@ -20,6 +22,15 @@ hangupButton.addEventListener('click', hangup);
 let startTime;
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
+
+////
+let lastPeerId = null;
+let peer = null; // Own peer object
+let peerId = null;
+let conn = null;
+const recvId = document.getElementById("receiver-id");
+const recvStatus = document.getElementById("receiver-status");
+////
 
 localVideo.addEventListener('loadedmetadata', function() {
   console.log(`Local video videoWidth: ${this.videoWidth}px,  videoHeight: ${this.videoHeight}px`);
@@ -68,9 +79,23 @@ async function start() {
   } catch (e) {
     alert(`getUserMedia() error: ${e.name}`);
   }
+  const peer = new Peer();
+  peer.on('open', function (id) {
+    // Workaround for peer.reconnect deleting previous id
+    if (peer.id === null) {
+        console.log('Received null id from peer open');
+        peer.id = lastPeerId;
+    } else {
+        lastPeerId = peer.id;
+    }
+    console.log('ID: ' + peer.id);
+    recvId.innerHTML = "ID: " + peer.id;
+    recvStatus.innerHTML = "Awaiting Call...";
+  });
 }
 
 async function call() {
+  
   
 }
 
