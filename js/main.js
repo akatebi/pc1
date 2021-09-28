@@ -148,6 +148,7 @@ function hangup(err) {
     mediaConn.close();
     mediaConn = null;
   }
+  // peer.destroy();
   callButton.disabled = false;
   hangupButton.disabled = true;
 }
