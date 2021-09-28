@@ -14,7 +14,7 @@ video {
   filter: invert(1); 
 }
 
-div.receiver {
+div.peer {
   font-weight: bold;
 }
 

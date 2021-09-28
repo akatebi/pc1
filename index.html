@@ -21,10 +21,11 @@
 <body>
 
 <div id="container">
-    <h1>Peer connection</h1>
+    <h1>WebRTC Peer Connection by 
+        <a href="https://peerjs.com">PeerJS</a>
+    </h1>
 
-    <p>This sample shows how to setup a connection between two peers using
-        <a href="https://peerjs.com">PeerJS</a>.
+    <p>Make Calls to Remote Peers using their ID || Answer Calls from Remote Peers.    
     </p>
 
     <video id="localVideo" playsinline autoplay muted></video>
@@ -37,8 +38,10 @@
         <button id="hangupButton">Hang Up</button>
     </div>
 
-    <div id="receiver-id" class="receiver" title="Copy this ID to the input on send.html.">ID:</div>
-    <div id="receiver-status" class="receiver"></div>
+    <div id="local-id" class="peer" title="Copy this ID to the input on send.html.">Local ID:</div>
+    <div id="local-status" class="peer"></div>
+    <hr/>
+    <input id="remote-id" class="peer" placeholder="Enter Remote Peer ID here"></input>
 
 </div>
 

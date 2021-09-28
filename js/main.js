@@ -28,8 +28,8 @@ let lastPeerId = null;
 let peer = null; // Own peer object
 let peerId = null;
 let conn = null;
-const recvId = document.getElementById("receiver-id");
-const recvStatus = document.getElementById("receiver-status");
+const localId = document.getElementById("local-id");
+const localStatus = document.getElementById("local-status");
 ////
 
 localVideo.addEventListener('loadedmetadata', function() {
@@ -89,9 +89,24 @@ async function start() {
         lastPeerId = peer.id;
     }
     console.log('ID: ' + peer.id);
-    recvId.innerHTML = "ID: " + peer.id;
-    recvStatus.innerHTML = "Awaiting Call...";
+    localId.innerHTML = "Local ID: " + peer.id;
+    localStatus.innerHTML = "Awaiting Call...";
   });
+  peer.on('connection', function (c) {
+    // Allow only a single connection
+    if (conn && conn.open) {
+        c.on('open', function() {
+            c.send("Already connected to another client");
+            setTimeout(function() { c.close(); }, 500);
+        });
+        return;
+    }
+
+    conn = c;
+    console.log("Connected to: " + conn.peer);
+    localStatus.innerHTML = "Connected";
+    ready();
+});
 }
 
 async function call() {
