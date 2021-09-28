@@ -50,20 +50,10 @@ remoteVideo.addEventListener('resize', () => {
 });
 
 let localStream;
-let pc1;
-let pc2;
 const offerOptions = {
   offerToReceiveAudio: 1,
   offerToReceiveVideo: 1
 };
-
-function getName(pc) {
-  return (pc === pc1) ? 'pc1' : 'pc2';
-}
-
-function getOtherPc(pc) {
-  return (pc === pc1) ? pc2 : pc1;
-}
 
 async function start() {
   console.log('Requesting local stream');
@@ -93,6 +83,8 @@ async function start() {
   peer.on('call', function(mediaConnection) {
     console.log("Got a Media Call");
     localStatus.innerHTML = "Call Establised !!!";
+    callButton.disabled = true;
+    hangupButton.disabled = false;
     mediaConnection.answer(localStream);
     mediaConnection.on('stream', function(stream) {
       remoteVideo.srcObject = stream;
@@ -115,6 +107,9 @@ async function call() {
     // `stream` is the MediaStream of the remote peer.
     // Here you'd add it to an HTML video/canvas element.
     remoteVideo.srcObject = stream;
+    localStatus.innerHTML = "Call Establised !!!";
+    callButton.disabled = true;
+    hangupButton.disabled = false;
   });
 
   conn.on('open', function () {
@@ -124,6 +119,8 @@ async function call() {
 
   conn.on('close', function () {
       localStatus.innerHTML = "Connection closed";
+      callButton.disabled = false;
+      hangupButton.disabled = true;
   });
   
 }
@@ -143,10 +140,7 @@ async function onCreateAnswerSuccess(desc) {
 
 function hangup() {
   console.log('Ending call');
-  pc1.close();
-  pc2.close();
-  pc1 = null;
-  pc2 = null;
+  conn.close();
   hangupButton.disabled = true;
   callButton.disabled = false;
 }
