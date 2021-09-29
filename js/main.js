@@ -23,7 +23,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 
 ////
 let localConn = null;
-let lastPeerId = null;
+// let lastPeerId = null;
 let peer = null; // Own peer object
 let peerId = null;
 const localId = document.getElementById("local-id");
@@ -74,12 +74,12 @@ async function start() {
   
   peer.on('open', function (id) {
     // Workaround for peer.reconnect deleting previous id
-    if (peer.id === null) {
-        console.log('Received null id from peer open');
-        peer.id = lastPeerId;
-    } else {
-        lastPeerId = peer.id;
-    }
+    // if (peer.id === null) {
+    //     console.log('Received null id from peer open');
+    //     peer.id = lastPeerId;
+    // } else {
+    //     lastPeerId = peer.id;
+    // }
     console.log('ID: ' + peer.id);
     localId.innerHTML = "Local ID: " + peer.id;
     localStatus.innerHTML = "Awaiting Call...";
@@ -89,8 +89,9 @@ async function start() {
 
   peer.on('error', (err) => hangup(89, null, err));
 
-  peer.on('disconnected', function() {
+  peer.on('disconnected', () => {
     peer.reconnect();
+    hangup(92, localConn, "disconnected");
   });
 
   peer.on('call', function(mediaConnection) {
@@ -104,13 +105,16 @@ async function start() {
     mediaConnection.on('stream', function(stream) {
       remoteVideo.srcObject = stream;
     });
-    mediaConnection.on('close', () => hangup(105, mediaConnection));
-    mediaConnection.on('error', (err) => hangup(106, mediaConnection, err));
+    mediaConnection.on('close', () => hangup(106, mediaConnection));
+    mediaConnection.on('error', (err) => hangup(107, mediaConnection, err));
   });
 }
 
 async function call() {
   // Create connection to destination peer specified in the input field
+  // if (peer.disconnected) {
+  //   peer.reconnect();
+  // }
   console.log("##### Remote Peer ID:", remoteId.value);
   const mediaConnection = peer.call(remoteId.value, localStream);
   localConn = mediaConnection;
@@ -130,9 +134,9 @@ async function call() {
       console.log("Connected to: " + mediaConnection.peer);
   });
 
-  mediaConnection.on('close', () => hangup(130, mediaConnection));
+  mediaConnection.on('close', () => hangup(132, mediaConnection));
 
-  mediaConnection.on('error', (err) => hangup(132, mediaConnection, err));
+  mediaConnection.on('error', (err) => hangup(134, mediaConnection, err));
   
 }
 
@@ -155,7 +159,6 @@ function hangup(line, mediaConnection, err = "") {
     mediaConnection.close();
   }
   localStatus.innerHTML = "Connection closed";
-  peer.disconnect();
   remoteVideo.srcObject = null;
   remoteId.disabled = false;
   callButton.disabled = false;
