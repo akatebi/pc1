@@ -70,7 +70,7 @@ async function start() {
     alert(`getUserMedia() error: ${e.name}`);
   }
   
-  peer = new Peer();
+  peer = new Peer(null, { debug: 3 });
   
   peer.on('open', function (id) {
     // Workaround for peer.reconnect deleting previous id
@@ -88,6 +88,10 @@ async function start() {
   peer.on('close', hangup);
 
   peer.on('error', hangup);
+
+  peer.on('disconnected', function() {
+    peer.reconnect();
+  });
 
   peer.on('call', function(mediaConnection) {
     console.log("Got a Media Call");
@@ -148,8 +152,9 @@ function hangup(err) {
   localStatus.innerHTML = "Connection closed";
   if(mediaConn) {
     mediaConn.close();
-    mediaConn = null;
+    // mediaConn = null;
   }
+  peer.disconnect();
   remoteVideo.srcObject = null;
   remoteId.disabled = false;
   callButton.disabled = false;
