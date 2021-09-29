@@ -15,17 +15,17 @@ callButton.disabled = true;
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
 callButton.addEventListener('click', call);
-hangupButton.addEventListener('click', hangup);
+hangupButton.addEventListener('click', () => hangup(18, localConn));
 
 let startTime;
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 
 ////
+let localConn = null;
 let lastPeerId = null;
 let peer = null; // Own peer object
 let peerId = null;
-let mediaConn = null;
 const localId = document.getElementById("local-id");
 const localStatus = document.getElementById("local-status");
 const remoteId = document.getElementById("remote-id");
@@ -85,9 +85,9 @@ async function start() {
     localStatus.innerHTML = "Awaiting Call...";
   });
 
-  peer.on('close', hangup);
+  peer.on('close', () => hangup(87));
 
-  peer.on('error', hangup);
+  peer.on('error', (err) => hangup(89, null, err));
 
   peer.on('disconnected', function() {
     peer.reconnect();
@@ -95,6 +95,7 @@ async function start() {
 
   peer.on('call', function(mediaConnection) {
     console.log("Got a Media Call");
+    localConn = mediaConnection;
     localStatus.innerHTML = "Call Establised !!!";
     remoteId.disabled = true;
     callButton.disabled = true;
@@ -103,17 +104,18 @@ async function start() {
     mediaConnection.on('stream', function(stream) {
       remoteVideo.srcObject = stream;
     });
-    mediaConnection.on('close', hangup);
-    mediaConnection.on('error', hangup);
+    mediaConnection.on('close', () => hangup(105, mediaConnection));
+    mediaConnection.on('error', (err) => hangup(106, mediaConnection, err));
   });
 }
 
 async function call() {
   // Create connection to destination peer specified in the input field
   console.log("##### Remote Peer ID:", remoteId.value);
-  mediaConn = peer.call(remoteId.value, localStream);
+  const mediaConnection = peer.call(remoteId.value, localStream);
+  localConn = mediaConnection;
 
-  mediaConn.on('stream', function(stream) {
+  mediaConnection.on('stream', function(stream) {
     // `stream` is the MediaStream of the remote peer.
     // Here you'd add it to an HTML video/canvas element.
     remoteVideo.srcObject = stream;
@@ -123,14 +125,14 @@ async function call() {
     hangupButton.disabled = false;
   });
 
-  mediaConn.on('open', function () {
-      localStatus.innerHTML = "Connected to: " + mediaConn.peer;
-      console.log("Connected to: " + mediaConn.peer);
+  mediaConnection.on('open', function () {
+      localStatus.innerHTML = "Connected to: " + mediaConnection.peer;
+      console.log("Connected to: " + mediaConnection.peer);
   });
 
-  mediaConn.on('close', hangup);
+  mediaConnection.on('close', () => hangup(130, mediaConnection));
 
-  mediaConn.on('error', hangup);
+  mediaConnection.on('error', (err) => hangup(132, mediaConnection, err));
   
 }
 
@@ -147,13 +149,12 @@ async function onCreateAnswerSuccess(desc) {
   
 }
 
-function hangup(err) {
-  console.log('Ending call', err);
-  localStatus.innerHTML = "Connection closed";
-  if(mediaConn) {
-    mediaConn.close();
-    // mediaConn = null;
+function hangup(line, mediaConnection, err = "") {
+  console.log(line, 'Ending call', err);
+  if(mediaConnection) {
+    mediaConnection.close();
   }
+  localStatus.innerHTML = "Connection closed";
   peer.disconnect();
   remoteVideo.srcObject = null;
   remoteId.disabled = false;
