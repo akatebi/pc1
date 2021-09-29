@@ -14,9 +14,9 @@ video {
   filter: invert(1) hue-rotate(180deg); 
 }
 
-div.peer, input.peer {
-  font-weight: bold;
-  min-width: 300px;
+
+input {
+  width: 16rem;
 }
 
 button {
