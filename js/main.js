@@ -15,7 +15,7 @@ callButton.disabled = true;
 hangupButton.disabled = true;
 startButton.addEventListener('click', start);
 callButton.addEventListener('click', call);
-hangupButton.addEventListener('click', () => hangup(18, localConn));
+hangupButton.addEventListener('click', () => hangup("Hangup", localConn));
 
 let startTime;
 const localVideo = document.getElementById('localVideo');
@@ -70,7 +70,7 @@ async function start() {
     alert(`getUserMedia() error: ${e.name}`);
   }
   
-  peer = new Peer(null, { debug: 3 });
+  peer = new Peer(null, { debug: 2 });
   
   peer.on('open', function (id) {
     // Workaround for peer.reconnect deleting previous id
@@ -85,19 +85,20 @@ async function start() {
     localStatus.innerHTML = "Awaiting Call...";
   });
 
-  peer.on('close', () => hangup(87));
+  peer.on('close', () => hangup("Peer close"));
 
-  peer.on('error', (err) => hangup(89, null, err));
+  peer.on('error', (err) => hangup("Perr error", null, err));
 
   peer.on('disconnected', () => {
     peer.reconnect();
-    hangup(92, localConn, "disconnected");
+    hangup("Peer disconnected", localConn, "disconnected");
   });
 
   peer.on('call', function(mediaConnection) {
-    console.log("Got a Media Call");
+    console.log("Got a Media Call from:", mediaConnection.metadata);
+    const { optiFleetCar } = mediaConnection.metadata;
     localConn = mediaConnection;
-    localStatus.innerHTML = "Call Establised !!!";
+    localStatus.innerHTML = `Answered Call From ${optiFleetCar} !!!`;
     remoteId.disabled = true;
     callButton.disabled = true;
     hangupButton.disabled = false;
@@ -105,8 +106,8 @@ async function start() {
     mediaConnection.on('stream', function(stream) {
       remoteVideo.srcObject = stream;
     });
-    mediaConnection.on('close', () => hangup(106, mediaConnection));
-    mediaConnection.on('error', (err) => hangup(107, mediaConnection, err));
+    mediaConnection.on('close', () => hangup("Connection close", mediaConnection));
+    mediaConnection.on('error', (err) => hangup("connection error", mediaConnection, err));
   });
 }
 
@@ -116,27 +117,22 @@ async function call() {
   //   peer.reconnect();
   // }
   console.log("##### Remote Peer ID:", remoteId.value);
-  const mediaConnection = peer.call(remoteId.value, localStream);
+  const mediaConnection = peer.call(remoteId.value, localStream, {metadata: {optiFleetCar: "zigzag-01"}});
   localConn = mediaConnection;
 
   mediaConnection.on('stream', function(stream) {
     // `stream` is the MediaStream of the remote peer.
     // Here you'd add it to an HTML video/canvas element.
     remoteVideo.srcObject = stream;
-    localStatus.innerHTML = "Call Establised !!!";
+    localStatus.innerHTML = `Call To ${mediaConnection.peer} Establised !!!`;
     remoteId.disabled = true;
     callButton.disabled = true;
     hangupButton.disabled = false;
   });
 
-  mediaConnection.on('open', function () {
-      localStatus.innerHTML = "Connected to: " + mediaConnection.peer;
-      console.log("Connected to: " + mediaConnection.peer);
-  });
+  mediaConnection.on('close', () => hangup("Connection close", mediaConnection));
 
-  mediaConnection.on('close', () => hangup(132, mediaConnection));
-
-  mediaConnection.on('error', (err) => hangup(134, mediaConnection, err));
+  mediaConnection.on('error', (err) => hangup("Connection error", mediaConnection, err));
   
 }
 
@@ -153,8 +149,8 @@ async function onCreateAnswerSuccess(desc) {
   
 }
 
-function hangup(line, mediaConnection, err = "") {
-  console.log(line, 'Ending call', err);
+function hangup(event, mediaConnection, err = "") {
+  console.log(event, 'Ending call', err);
   if(mediaConnection) {
     mediaConnection.close();
   }
