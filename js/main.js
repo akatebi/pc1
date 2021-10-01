@@ -96,6 +96,8 @@ async function start() {
 
   peer.on('call', function(mediaConnection) {
     console.log("Got a Media Call from:", mediaConnection.metadata);
+    console.log("Peer id", peer.id);
+    console.log("Peer connections", peer.connections);
     const { optiFleetCar } = mediaConnection.metadata;
     localConn = mediaConnection;
     localStatus.innerHTML = `Answered Call From ${optiFleetCar} !!!`;
